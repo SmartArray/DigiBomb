@@ -1,6 +1,14 @@
 # DigiBomb
 Flood the network with some transactions
 
+## Installation
+
+```
+git clone https://github.com/SmartArray/DigiBomb.git && cd DigiBomb && npm install && chmod u+x *.js *.bash
+```
+
+## Usage
+
 ```
 export CLI=~/digibyte/src/digibyte-cli
 
