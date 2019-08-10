@@ -1,0 +1,16 @@
+{
+  "name": "josiahssuperscript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoshi",
+  "license": "ISC",
+  "dependencies": {
+    "digibyte": "^0.15.6",
+    "node-fetch": "^2.6.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
