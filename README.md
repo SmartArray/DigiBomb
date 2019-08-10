@@ -3,6 +3,7 @@ Flood the network with some transactions
 
 ## Installation
 
+This script-suite must be placed on a machine that has digibyte-cli installed.
 ```
 git clone https://github.com/SmartArray/DigiBomb.git && cd DigiBomb && npm install && chmod u+x *.js *.bash
 ```
