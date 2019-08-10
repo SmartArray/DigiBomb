@@ -7,6 +7,9 @@ Flood the network with some transactions
 git clone https://github.com/SmartArray/DigiBomb.git && cd DigiBomb && npm install && chmod u+x *.js *.bash
 ```
 
+## Configuration
+You may change the parameters in ```config.js```
+
 ## Usage
 
 ```
