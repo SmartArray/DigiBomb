@@ -13,6 +13,7 @@ You may change the parameters in ```config.js```
 ## Usage
 
 ```
+# You should adapt this path
 export CLI=~/digibyte/src/digibyte-cli
 
 # Generate origin address
@@ -21,7 +22,7 @@ export CLI=~/digibyte/src/digibyte-cli
 # Send 1 DGB using mobile wallet or so
 # ...
 
-# Create transaction that does 1000 outputs
+# Create transaction that does <CONFIG.ADDRESSES> outputs
 ./02_tx.js
 
 # Broadcast using cli
