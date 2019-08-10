@@ -16,6 +16,10 @@ You may change the parameters in ```config.js```
 # You should adapt this path
 export CLI=~/digibyte/src/digibyte-cli
 
+# Create the temporary data directory,
+# in which keys and transaction related data will be saved
+mkdir -p data
+
 # Generate origin address
 ./01_generate.js
 
