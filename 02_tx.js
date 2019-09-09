@@ -33,6 +33,12 @@ function generateTxId(tx) {
 	return hash2;
 }
 
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+    return s;
+}
+
 const doIt = (async () => {
 	const addr = inputKey.toAddress().toString();
 	console.log(`Fetching address utxo for ${addr}...`);
@@ -92,7 +98,7 @@ const doIt = (async () => {
 
 		// Save tx
 		tx = tx.sign(new PrivateKey(input));
-		fs.writeFileSync(`data/tx_${counter}`, tx.serialize());
+		fs.writeFileSync(`data/tx_${counter.pad(5)}`, tx.serialize());
 
 		i += MAX_OUTPUTS;
 		++counter;		
