@@ -94,7 +94,6 @@ const doIt = (async () => {
 		tx = tx.sign(new PrivateKey(input));
 		fs.writeFileSync(`data/tx_${counter}`, tx.serialize());
 
-
 		i += MAX_OUTPUTS;
 		++counter;		
 	}
