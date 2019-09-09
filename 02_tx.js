@@ -4,11 +4,14 @@ const config = require('./config');
 const ADDRESSES = config.ADDRESSES;
 const EACH = config.EACH;
 const HOST = config.HOST; //'https://digiexplorer.info/api'; 
+const MAX_OUTPUTS = config.MAX_OUTPUTS;
 const SATOSHI = 100000000;
 
 const digibyte = require('digibyte');
 const fs = require('fs');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
+const hash = crypto.createHash('sha256');
 
 const PrivateKey = digibyte.PrivateKey;
 const Transaction = digibyte.Transaction;
@@ -21,6 +24,14 @@ console.log(`Using private key ${input} as an input`);
 const inputKey = new PrivateKey(input);
 
 fs.writeFileSync('data/outputs', privateKeys.map(val => val.toString()).join('\n'));
+
+function generateTxId(tx) {
+	const h = tx.serialize();
+	const buffer = Buffer.from(h, 'hex');
+	const hash1 = crypto.createHash('sha256').update(buffer).digest();
+	const hash2 = crypto.createHash('sha256').update(hash1).digest().reverse().toString('hex');
+	return hash2;
+}
 
 const doIt = (async () => {
 	const addr = inputKey.toAddress().toString();
@@ -42,55 +53,54 @@ const doIt = (async () => {
 	const utxoResp = await fetch(`${HOST}/tx/${firstTx}`);
 	const json2 = await utxoResp.json();
 	const u = json2.vout.find(u => u.scriptPubKey.addresses.indexOf(addr) >= 0);
-	console.log(u);
 
-	/*
-	 *   {
-	 *       value: '1.00000000',
-	 *           n: 1,
-	 *               scriptPubKey: {
-	 *                     asm: '0 0020a05f26ade5d71c3695ccd2dd0b3e95a3e565',
-	 *                           hex: '00140020a05f26ade5d71c3695ccd2dd0b3e95a3e565',
-	 *                                 reqSigs: 1,
-	 *                                       type: 'witness_v0_keyhash',
-	 *                                             addresses: [Array]
-	 *                                                 }
-	 *                                                   }
-	 *                                                   */
-	const utxo = {
+	var utxo = {
 		txId: firstTx,
 		outputIndex: u.n,
-		address: addr,
+		address: addr, // input
 		script: u.scriptPubKey.hex,
 		satoshis: parseFloat(u.value) * SATOSHI
 	};
 
-	console.log(utxo);
+	var counter = 0;
 
-	console.log('Creating transaction...');
+	for (let i = 0; i < ADDRESSES; ) {
+		var tx = new Transaction().from(utxo)
 
-	var tx = new Transaction()
-		.from(utxo)
+		for (let b = 0; b < MAX_OUTPUTS && i + b < ADDRESSES; ++b) {
+			const priv = privateKeys[i + b];
+			tx = tx.to(priv.toAddress(), parseInt(Math.round(EACH * SATOSHI)));
+		}
+
+		tx = tx.change(addr)
+		if (!tx.isFullySigned()) {
+			throw 'Some tx was not fully signed';
+		}
+
+		// Use change output utxo for next transaction
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+
+		utxo = {
+			txId: generateTxId(tx),
+			outputIndex: tx.outputs.length - 1,
+			address: addr,
+			script: changeOutput._script,
+			satoshis: changeOutput._satoshis
+		}
+
+		console.log('txid', utxo.txId);
+
+		// Save tx
+		tx = tx.sign(new PrivateKey(input));
+		fs.writeFileSync(`data/tx_${counter}`, tx.serialize());
 
 
-	for (const priv of privateKeys) {
-		tx = tx.to(priv.toAddress(), parseInt(Math.round(EACH * SATOSHI)));
+		i += MAX_OUTPUTS;
+		++counter;		
 	}
 
-	tx = tx
-		.change(addr)
-		.sign(new PrivateKey(input));
-
-	console.log(tx);
-
-	fs.writeFileSync('data/tx', tx.serialize());
-
-	console.log('Tx generated!');
-	console.log('Execute the next script in order to broadcast your tx');
+	console.log('Transaction(s) generated!');
+	console.log('Execute the next script in order to broadcast your tx(s)');
 });
 
 doIt();
-
-
-
-

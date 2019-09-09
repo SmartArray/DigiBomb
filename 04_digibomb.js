@@ -7,6 +7,7 @@ const ADDRESSES = config.ADDRESSES;
 const EACH = config.EACH;
 const HOST = config.HOST; 
 const RECEIVE_ADDR = config.RECEIVE_ADDRESS;
+const MAX_OUTPUTS = config.MAX_OUTPUTS;
 
 const SATOSHI = 100000000;
 
@@ -17,49 +18,57 @@ const fetch = require('node-fetch');
 const PrivateKey = digibyte.PrivateKey;
 const Transaction = digibyte.Transaction;
 
-const txhash = fs.readFileSync('data/txid').toString().trim();
+const txhashes = fs.readFileSync('data/txid').toString().split('\n').map(l => l.trim());
 const privKeys = fs.readFileSync('data/outputs').toString().trim().split('\n').map(l => new PrivateKey(l));
 
 const doIt = (async () => {
 	console.log('Creating transactions...');
 
-	const resp = await fetch(`${HOST}/tx/${txhash}`);
-	const json = await resp.json();
+	for (const txhashIdx in txhashes) {
+		const txhash = txhashes[txhashIdx];
+		const resp = await fetch(`${HOST}/tx/${txhash}`);
+		const json = await resp.json();
 
-	const utxos = json.vout;
+		const utxos = json.vout;
 
-	for (var i = 0; i < ADDRESSES; ++i) {
-		var utxo = {
-			txId: txhash,
-			outputIndex: i,
-			address: utxos[i].scriptPubKey.addresses[0],
-			script: utxos[i].scriptPubKey.hex,
-			satoshis: parseInt(Math.round(parseFloat(utxos[i].value) * SATOSHI))
-		};
+		var max = MAX_OUTPUTS;
+		if (txhashIdx == txhashes.length - 1) {
+			max = ADDRESSES % MAX_OUTPUTS;
+		}
 
-		var tx = new Transaction()
-			.from(utxo)
-			.to(RECEIVE_ADDR, 1000)
-			.change(RECEIVE_ADDR)
-			.sign(privKeys)
+		for (var i = 0; i < max; ++i) {
+			var utxo = {
+				txId: txhash,
+				outputIndex: i,
+				address: utxos[i].scriptPubKey.addresses[0],
+				script: utxos[i].scriptPubKey.hex,
+				satoshis: parseInt(Math.round(parseFloat(utxos[i].value) * SATOSHI))
+			};
 
-		let bytes = tx.serialize().length / 2 / 1000.0;
-		let fee = bytes * Transaction.FEE_PER_KB + Transaction.DUST_AMOUNT + 15;
+			var tx = new Transaction()
+				.from(utxo)
+				.to(RECEIVE_ADDR, 1000)
+				.change(RECEIVE_ADDR)
+				.sign(privKeys)
 
-		if (fee > utxo.satoshis) {
-			console.error("Not enough balance to pay fees");
-			process.exit(1);
-		}	
-	
-		tx = tx
-			.clearOutputs()
-			.to(RECEIVE_ADDR, utxo.satoshis - fee)
-			.sign(privKeys)
-			.fee(fee);
+			let bytes = tx.serialize().length / 2 / 1000.0;
+			let fee = bytes * Transaction.FEE_PER_KB + Transaction.DUST_AMOUNT + 15;
 
-		console.log(`\rGenerating tx no. ${i}`);
+			if (fee > utxo.satoshis) {
+				console.error("Not enough balance to pay fees");
+				process.exit(1);
+			}	
+		
+			tx = tx
+				.clearOutputs()
+				.to(RECEIVE_ADDR, utxo.satoshis - fee)
+				.sign(privKeys)
+				.fee(fee);
 
-		fs.writeFileSync(`data/tx_${i}`, tx.serialize());
+			console.log(`\rGenerating tx no. ${i}`);
+
+			fs.writeFileSync(`data/bomb_${txhashIdx}_${i}`, tx.serialize());
+		}
 	}
 
 	console.log(`${ADDRESSES} transaction(s) generated`);
@@ -67,7 +76,3 @@ const doIt = (async () => {
 });
 
 doIt();
-
-
-
-
