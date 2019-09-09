@@ -9,7 +9,7 @@ rm -f data/txid
 ls data/tx_* | while read line; do 
 	$CLI sendrawtransaction "$(cat $line)" > data/tmpid
 
-	txid="$(data/tmpid)"
+	txid="$(cat data/tmpid)"
 
 	# Wait for transaction to happen
 	node check.js "$txid"
