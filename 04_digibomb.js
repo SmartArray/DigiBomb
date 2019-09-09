@@ -23,10 +23,13 @@ const privKeys = fs.readFileSync('data/outputs').toString().trim().split('\n').m
 
 const doIt = (async () => {
 	console.log('Creating transactions...');
+	var counter = 0;
 
 	for (const txhashIdx in txhashes) {
 		const txhash = txhashes[txhashIdx];
-		const resp = await fetch(`${HOST}/tx/${txhash}`);
+		const url = `${HOST}/tx/${txhash}`;
+		console.log(`Fetching ${url} ...`)
+		const resp = await fetch(url);
 		const json = await resp.json();
 
 		const utxos = json.vout;
@@ -65,7 +68,7 @@ const doIt = (async () => {
 				.sign(privKeys)
 				.fee(fee);
 
-			console.log(`\rGenerating tx no. ${i}`);
+			console.log(`\rGenerating tx no. ${counter}/${ADDRESSES}`);
 
 			fs.writeFileSync(`data/bomb_${txhashIdx}_${i}`, tx.serialize());
 		}
