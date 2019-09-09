@@ -5,7 +5,7 @@ CLI="${CLI:-digibyte-cli}"
 
 echo "Using $CLI to broadcast the transaction..."
 
-rm data/txid
+rm -f data/txid
 ls data/tx_* | while read line; do 
 	$CLI sendrawtransaction "$(cat $line)" >> data/txid
 done
