@@ -19,7 +19,7 @@ const Transaction = digibyte.Transaction;
 console.log('Generating private keys...');
 const privateKeys = new Array(ADDRESSES).fill(null).map(() => new PrivateKey());
 
-const input = fs.readFileSync('data/input').toString();
+const input = fs.readFileSync('data/input').toString().trim();
 console.log(`Using private key ${input} as an input`);
 const inputKey = new PrivateKey(input);
 
