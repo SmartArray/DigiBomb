@@ -69,6 +69,7 @@ const doIt = (async () => {
 				.fee(fee);
 
 			console.log(`\rGenerating tx no. ${counter}/${ADDRESSES}`);
+			counter++;
 
 			fs.writeFileSync(`data/bomb_${txhashIdx}_${i}`, tx.serialize());
 		}
