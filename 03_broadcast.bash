@@ -6,7 +6,7 @@ echo "Using $CLI to broadcast the transaction..."
 
 rm -f data/txid
 ls data/tx_* | while read line; do 
-	$CLI sendrawtransaction "$(cat $line)" > data/tmpid
+	$CLI sendrawtransaction "$(cat $line)" > data/tmpid 2> data/err
 
 	if [[ "$?" -eq "0" ]]; then
 		txid="$(cat data/tmpid)"
@@ -20,5 +20,8 @@ ls data/tx_* | while read line; do
 		fi
 
 		echo "$txid" >> data/txid
+	else
+		err=$(cat data/err)
+		echo "Failed to broadcast $line: $err"
 	fi
 done
